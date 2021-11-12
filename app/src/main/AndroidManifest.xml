@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="xyz.xyz0z0.photoutils">
+    package="xyz.xyz0z0.modulephotoutilstest">
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ModuleHttpUtil">
         <activity
-            android:name="xyz.xyz0z0.photoutils.MainActivity"
+            android:name="xyz.xyz0z0.modulephotoutilstest.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

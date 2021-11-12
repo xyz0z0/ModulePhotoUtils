@@ -5,7 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context="xyz.xyz0z0.modulephotoutilstest.MainActivity">
+
+    <Button
+        android:id="@+id/btnDefaultTakePhoto"
+        android:text="系统原生拍照"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/btnSelectPhoto"
