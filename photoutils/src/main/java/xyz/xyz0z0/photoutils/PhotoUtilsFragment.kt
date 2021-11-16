@@ -21,21 +21,27 @@ class PhotoUtilsFragment : Fragment() {
 
     private val takePhotoResult = registerForActivityResult(ActivityResultContracts.TakePicture()) {
         detachActivity(requireActivity())
-        val uri = mTempUri
-        if (it && uri != null) mCallBack?.onSuccess(uri) else mCallBack?.onFail()
+        val file = mTempFile
+        if (it && file != null) mTakeCallBack?.onSuccess(file.absolutePath) else mSelectPhotoCallBack?.onFail()
     }
 
 
     private val selectPhotoResult = registerForActivityResult(ActivityResultContracts.GetContent()) {
         detachActivity(requireActivity())
-        if (it == null) mCallBack?.onFail() else mCallBack?.onSuccess(it)
+        if (it == null) mSelectPhotoCallBack?.onFail() else mSelectPhotoCallBack?.onSuccess(it)
     }
 
-    private var mCallBack: OnPhotoCallback? = null
+    private var mSelectPhotoCallBack: SelectCallback? = null
+    private var mTakeCallBack: TakePhotoCallback? = null
 
-    fun setCallBack(callback: OnPhotoCallback) {
-        this.mCallBack = callback
+    fun setSelectCallBack(callback: SelectCallback) {
+        this.mSelectPhotoCallBack = callback
     }
+
+    fun setTakeCallBack(callback: TakePhotoCallback) {
+        this.mTakeCallBack = callback
+    }
+
 
     // 绑定 Activity
     fun attachActivity(activity: FragmentActivity) {
@@ -62,6 +68,7 @@ class PhotoUtilsFragment : Fragment() {
     }
 
     private var mTempUri: Uri? = null
+    private var mTempFile: File? = null
 
     private fun handleByMe() {
         val arguments: Bundle? = arguments
@@ -69,16 +76,18 @@ class PhotoUtilsFragment : Fragment() {
         if (arguments == null || activity == null) {
             return
         }
-        when (val type = arguments.getInt(PHOTO_TYPE)) {
-            SELECT_PHOTO -> {
+        when (val type = arguments.getInt(PhotoUtils.PHOTO_TYPE)) {
+            PhotoUtils.SELECT_PHOTO -> {
                 mTempUri = null
-                selectPhotoResult.launch(CONTENT_IMAGE)
+                mTempFile = null
+                selectPhotoResult.launch(PhotoUtils.CONTENT_IMAGE)
             }
-            TAKE_PHOTO -> {
+            PhotoUtils.TAKE_PHOTO -> {
                 val saveFileDir = File(requireContext().externalCacheDir, "PhotoUtils")
                 saveFileDir.mkdirs()
                 val fileName = fileDateFormat.format(Date()) + ".jpg"
                 val file = File(saveFileDir, fileName)
+                mTempFile = file
                 mTempUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
                 takePhotoResult.launch(mTempUri)
             }
@@ -86,37 +95,6 @@ class PhotoUtilsFragment : Fragment() {
                 throw RuntimeException("Not Support This Type $type")
             }
         }
-
-    }
-
-    companion object {
-
-        private const val CONTENT_IMAGE = "image/*"
-        private const val PHOTO_TYPE = "photo_type"
-        private const val SELECT_PHOTO = 1
-        private const val TAKE_PHOTO = 2
-
-
-        fun selectPhoto(activity: FragmentActivity, callback: OnPhotoCallback) {
-            val fragment = PhotoUtilsFragment()
-            val bundle = Bundle()
-            bundle.putInt(PHOTO_TYPE, SELECT_PHOTO)
-            fragment.arguments = bundle
-            fragment.setCallBack(callback)
-            fragment.setPhotoFlag(true)
-            fragment.attachActivity(activity)
-        }
-
-        fun takePhoto(activity: FragmentActivity, callback: OnPhotoCallback) {
-            val fragment = PhotoUtilsFragment()
-            val bundle = Bundle()
-            bundle.putInt(PHOTO_TYPE, TAKE_PHOTO)
-            fragment.arguments = bundle
-            fragment.setCallBack(callback)
-            fragment.setPhotoFlag(true)
-            fragment.attachActivity(activity)
-        }
-
 
     }
 

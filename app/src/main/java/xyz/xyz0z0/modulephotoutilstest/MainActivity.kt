@@ -14,8 +14,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ToastUtils
-import xyz.xyz0z0.photoutils.OnPhotoCallback
-import xyz.xyz0z0.photoutils.PhotoUtilsFragment
+import xyz.xyz0z0.photoutils.PhotoUtils
+import xyz.xyz0z0.photoutils.SelectCallback
+import xyz.xyz0z0.photoutils.TakePhotoCallback
 import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -54,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnSelectPhoto.setOnClickListener {
-            PhotoUtilsFragment.selectPhoto(this, object : OnPhotoCallback {
+            PhotoUtils.selectPhoto(this, object : SelectCallback {
                 override fun onSuccess(uri: Uri) {
                     LogUtils.json("xxx", uri.path)
                     ToastUtils.showShort("成功")
@@ -71,11 +72,12 @@ class MainActivity : AppCompatActivity() {
 
 
         btnTakePhoto.setOnClickListener {
-            PhotoUtilsFragment.takePhoto(this, object : OnPhotoCallback {
-                override fun onSuccess(uri: Uri) {
-                    LogUtils.json("xxx", uri.path)
+            PhotoUtils.takePhoto(this, object : TakePhotoCallback {
+
+                override fun onSuccess(path: String) {
+                    LogUtils.json("ccc", path)
                     ToastUtils.showShort("成功")
-                    ivImage.setImageURI(uri)
+
                 }
 
 

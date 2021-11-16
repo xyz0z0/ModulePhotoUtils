@@ -7,7 +7,7 @@ import android.net.Uri
  * Date: 2021/11/10 16:24
  * Description: xyz.xyz0z0.modulephotoutils
  */
-interface OnPhotoCallback {
+interface SelectCallback {
 
     fun onSuccess(uri: Uri)
 
