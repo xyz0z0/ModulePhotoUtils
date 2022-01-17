@@ -1,9 +1,11 @@
 package xyz.xyz0z0.photoutils
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
+import android.provider.MediaStore
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -15,30 +17,25 @@ import java.util.*
 
 class PhotoUtilsFragment : Fragment() {
 
+
     private val fileDateFormat: DateFormat = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.CHINA)
 
     private var mPhotoFlag: Boolean = false
 
-    private val takePhotoResult = registerForActivityResult(ActivityResultContracts.TakePicture()) {
-        detachActivity(requireActivity())
-        val file = mTempFile
-        if (it && file != null) mTakeCallBack?.onSuccess(file.absolutePath) else mSelectPhotoCallBack?.onFail()
+
+    private var mSelectPhotoCallBack: ((uri: Uri?) -> Unit) = {
+
     }
 
+    private var mTakeCallBack: ((path: String?) -> Unit) = {
 
-    private val selectPhotoResult = registerForActivityResult(ActivityResultContracts.GetContent()) {
-        detachActivity(requireActivity())
-        if (it == null) mSelectPhotoCallBack?.onFail() else mSelectPhotoCallBack?.onSuccess(it)
     }
 
-    private var mSelectPhotoCallBack: SelectCallback? = null
-    private var mTakeCallBack: TakePhotoCallback? = null
-
-    fun setSelectCallBack(callback: SelectCallback) {
+    fun setSelectCallBack(callback: (uri: Uri?) -> Unit) {
         this.mSelectPhotoCallBack = callback
     }
 
-    fun setTakeCallBack(callback: TakePhotoCallback) {
+    fun setTakeCallBack(callback: (path: String?) -> Unit) {
         this.mTakeCallBack = callback
     }
 
@@ -70,6 +67,28 @@ class PhotoUtilsFragment : Fragment() {
     private var mTempUri: Uri? = null
     private var mTempFile: File? = null
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 100) {
+            detachActivity(requireActivity())
+            val uri = data?.data
+            if (resultCode == Activity.RESULT_OK && uri != null) {
+                mSelectPhotoCallBack.invoke(uri)
+            } else {
+                mSelectPhotoCallBack.invoke(null)
+            }
+        } else if (requestCode == 200) {
+            detachActivity(requireActivity())
+            val file = mTempFile
+            if (resultCode == Activity.RESULT_OK && file != null) {
+                mTakeCallBack.invoke(file.absolutePath)
+            } else {
+                mTakeCallBack.invoke(null)
+            }
+        }
+
+    }
+
     private fun handleByMe() {
         val arguments: Bundle? = arguments
         val activity: Activity? = activity
@@ -80,22 +99,36 @@ class PhotoUtilsFragment : Fragment() {
             PhotoUtils.SELECT_PHOTO -> {
                 mTempUri = null
                 mTempFile = null
-                selectPhotoResult.launch(PhotoUtils.CONTENT_IMAGE)
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                intent.type = PhotoUtils.CONTENT_IMAGE
+                startActivityForResult(intent, 100)
             }
             PhotoUtils.TAKE_PHOTO -> {
+                val systemCamera = arguments.getBoolean(PhotoUtils.SYSTEM_CAMERA)
                 val saveFileDir = File(requireContext().externalCacheDir, "PhotoUtils")
                 saveFileDir.mkdirs()
                 val fileName = fileDateFormat.format(Date()) + ".jpg"
                 val file = File(saveFileDir, fileName)
                 mTempFile = file
                 mTempUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
-                takePhotoResult.launch(mTempUri)
+                val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                if (systemCamera) {
+                    val cameraPackage = PhotoUtils.getSystemCameraPackageName(requireContext())
+                    if (cameraPackage.isEmpty()) {
+                        Log.e(PhotoUtils.TAG, "Camera Package Name Is Empty")
+                        return
+                    }
+                    intent.setPackage(cameraPackage)
+                }
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mTempUri)
+                startActivityForResult(intent, 200)
+
             }
             else -> {
                 throw RuntimeException("Not Support This Type $type")
             }
         }
-
     }
 
 

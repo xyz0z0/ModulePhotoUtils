@@ -23,7 +23,19 @@
         android:id="@+id/btnTakePhoto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="拍摄照片" />
+        android:text="拍摄照片（系统相机）" />
+
+    <Button
+        android:id="@+id/btnTakePhotoSecond"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="拍摄照片（不限制相机）" />
+
+    <Button
+        android:id="@+id/btnGetFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="选择文件" />
 
     <ImageView
         android:id="@+id/ivImage"
